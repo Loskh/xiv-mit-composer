@@ -48,7 +48,7 @@ export const useStore = create<AppState>()(
             fightId: '',
             fight: null,
             actors: [],
-            selectedJob: null,
+            selectedJob: 'GNB',
             selectedPlayerId: null,
             damageEvents: [],
             castEvents: [],
