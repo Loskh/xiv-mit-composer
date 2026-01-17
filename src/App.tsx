@@ -45,6 +45,7 @@ export default function App() {
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportContent, setExportContent] = useState('');
+  const [enableTTS, setEnableTTS] = useState(false);
   const [activeItem, setActiveItem] = useState<DragOverlayItem | null>(null);
   const [dragDeltaMs, setDragDeltaMs] = useState(0);
 
@@ -73,9 +74,9 @@ export default function App() {
     }
   };
 
-  const handleExportTimeline = () => {
+  const getEventsToExport = () => {
     const { castEvents, mitEvents } = useStore.getState();
-    const eventsToExport = [
+    return [
       ...castEvents.map((e) => ({
         time: Number((e.tMs / MS_PER_SEC).toFixed(TIME_DECIMAL_PLACES)),
         actionName: e.ability.name,
@@ -96,10 +97,20 @@ export default function App() {
         };
       }),
     ].sort((a, b) => a.time - b.time);
+  };
 
-    const txt = FFLogsExporter.generateTimeline(eventsToExport);
+  const handleExportTimeline = () => {
+    const eventsToExport = getEventsToExport();
+    const txt = FFLogsExporter.generateTimeline(eventsToExport, enableTTS);
     setExportContent(txt);
     setIsExportModalOpen(true);
+  };
+
+  const handleTtsChange = (enabled: boolean) => {
+    setEnableTTS(enabled);
+    const eventsToExport = getEventsToExport();
+    const txt = FFLogsExporter.generateTimeline(eventsToExport, enabled);
+    setExportContent(txt);
   };
 
   const handleDragStart = (event: DragStartEvent) => {
@@ -307,6 +318,8 @@ export default function App() {
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         content={exportContent}
+        enableTTS={enableTTS}
+        onTtsChange={handleTtsChange}
       />
     </DndContext>
   );

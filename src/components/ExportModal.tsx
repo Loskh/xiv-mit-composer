@@ -5,9 +5,11 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   content: string;
+  enableTTS: boolean;
+  onTtsChange: (enabled: boolean) => void;
 }
 
-export function ExportModal({ isOpen, onClose, content }: Props) {
+export function ExportModal({ isOpen, onClose, content, enableTTS, onTtsChange }: Props) {
   const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
@@ -33,8 +35,19 @@ export function ExportModal({ isOpen, onClose, content }: Props) {
         </div>
 
         <div className="p-4 flex-1 overflow-hidden flex flex-col gap-4">
-          <div className="text-sm text-gray-400">
-            请复制以下内容并粘贴到 ff14-overlay-vue 的时间轴设置文件中。
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-gray-400">
+              请复制以下内容并粘贴到 ff14-overlay-vue 的时间轴设置文件中。
+            </div>
+            <label className="flex items-center gap-2 text-sm text-gray-300 cursor-pointer hover:text-white transition-colors">
+              <input
+                type="checkbox"
+                checked={enableTTS}
+                onChange={(e) => onTtsChange(e.target.checked)}
+                className="w-4 h-4 rounded border-gray-600 bg-gray-700 text-blue-600 focus:ring-blue-500 focus:ring-offset-gray-800 cursor-pointer"
+              />
+              <span>生成TTS</span>
+            </label>
           </div>
           <textarea
             className="w-full flex-1 bg-gray-950 border border-gray-700 rounded-lg p-3 font-mono text-xs text-green-400 resize-none focus:outline-none focus:ring-1 focus:ring-blue-500 custom-scrollbar"

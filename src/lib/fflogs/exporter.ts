@@ -15,15 +15,21 @@ export class FFLogsExporter {
   /**
    * 生成时间轴文本内容
    * 根据 Action ID 重新应用 window/sync 规则
+   * @param events 事件列表
+   * @param enableTTS 是否生成 TTS（默认为 false）
    */
-  static generateTimeline(events: ExportableEvent[]): string {
+  static generateTimeline(events: ExportableEvent[], enableTTS: boolean = false): string {
     const lines: string[] = [];
     const battleSyncedIds = new Set<number>();
 
     for (const event of events) {
       if (event.isFriendly) {
         // 玩家技能
-        lines.push(`${event.time} "<${event.actionName}>~"`);
+        if (enableTTS) {
+          lines.push(`${event.time} "<${event.actionName}>~" tts "${event.actionName}"`);
+        } else {
+          lines.push(`${event.time} "<${event.actionName}>~"`);
+        }
       } else {
         // Boss 技能
         const rule = getFactoryRule(event.actionId);
