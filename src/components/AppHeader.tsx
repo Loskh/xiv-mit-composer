@@ -36,6 +36,7 @@ export function AppHeader({
           type="password"
           value={apiKey}
           onChange={(e) => onApiKeyChange(e.target.value)}
+          aria-label="FFLogs API Key"
           className="bg-transparent border-none focus:ring-0 text-sm w-64 px-2 text-gray-200 placeholder-gray-600 outline-none"
           placeholder="API Key"
         />
@@ -44,12 +45,14 @@ export function AppHeader({
           type="text"
           value={fflogsUrl}
           onChange={(e) => onFflogsUrlChange(e.target.value)}
+          aria-label="FFLogs 报告 URL"
           className="bg-transparent border-none focus:ring-0 text-sm w-[32rem] px-2 text-gray-200 placeholder-gray-600 outline-none"
           placeholder="FFLogs URL (e.g., https://cn.fflogs.com/reports/...)"
         />
       </div>
 
       <button
+        type="button"
         onClick={onLoadFight}
         disabled={isLoading || !canLoad}
         className="bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:bg-gray-800 px-5 py-2 rounded-lg text-sm font-semibold transition-all shadow-lg active:scale-95 flex items-center gap-2 text-white"
@@ -61,6 +64,7 @@ export function AppHeader({
 
       <div className="flex gap-3">
         <button
+          type="button"
           onClick={onExportTimeline}
           disabled={!canExport}
           className="bg-green-800 hover:bg-green-700 disabled:opacity-50 px-4 py-2 rounded-lg text-xs font-semibold transition-colors border border-gray-700 text-green-100 shadow-sm hover:text-white"
@@ -77,6 +81,8 @@ export function AppHeader({
           <img
             src={githubIcon}
             alt="GitHub"
+            width={20}
+            height={20}
             className="w-5 h-5 invert opacity-75 group-hover:opacity-100"
           />
         </a>
