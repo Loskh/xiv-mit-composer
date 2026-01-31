@@ -6,6 +6,7 @@ import {
   normalizeSkillId,
 } from '../data/skills';
 import type { CooldownEvent, Job, MitEvent } from '../model/types';
+import { BinaryHeap } from './BinaryHeap';
 
 const GROUP_PREFIX = 'grp:';
 const buildOwnerKey = (ownerId?: number, ownerJob?: Job) => {
@@ -16,9 +17,6 @@ const buildOwnerKey = (ownerId?: number, ownerJob?: Job) => {
 
 export function tryBuildCooldowns(events: MitEvent[]): CooldownEvent[] | void {
   const stackEvents = buildStackEvents(events);
-  // 同一时间点先恢复再消耗，保证“转好即可用”的确定性排序。
-  const typeOrder: Record<StackEvent['type'], number> = { recover: 0, consume: 1 };
-  stackEvents.sort((a, b) => a.tMs - b.tMs || typeOrder[a.type] - typeOrder[b.type]);
 
   const skillStacksCounts = buildBoundaries(stackEvents);
   if (!skillStacksCounts) return;
@@ -78,8 +76,12 @@ interface StackEvent {
   tMs: number;
 }
 
-function buildStackEvents(mitEvents: MitEvent[]): StackEvent[] {
-  const stackEvents: StackEvent[] = [];
+const stackEventOrder: Record<StackEvent['type'], number> = { recover: 0, consume: 1 };
+
+function buildStackEvents(mitEvents: MitEvent[]): BinaryHeap<StackEvent> {
+  const stackEvents: BinaryHeap<StackEvent> = new BinaryHeap<StackEvent>(
+    (a, b) => a.tMs - b.tMs || stackEventOrder[a.type] - stackEventOrder[b.type],
+  );
 
   for (const event of mitEvents) {
     const baseSkillId = normalizeSkillId(event.skillId);
@@ -93,13 +95,14 @@ function buildStackEvents(mitEvents: MitEvent[]): StackEvent[] {
     const ownerKey = buildOwnerKey(event.ownerId, event.ownerJob);
     const skillResourceKey = ownerKey ? `${baseSkillId}:${ownerKey}` : baseSkillId;
     const skillCooldownMs = skillMeta.cooldownSec * MS_PER_SEC;
-    pushStackEvents(stackEvents, {
+    stackEvents.push({
       resourceKey: skillResourceKey,
-      ownerKey,
+      ownerKey: ownerKey,
       skillId: baseSkillId,
       isGroup: false,
-      tStartMs: event.tStartMs,
+      type: 'consume',
       cooldownMs: skillCooldownMs,
+      tMs: event.tStartMs,
     });
 
     const skillGroupId = skillMeta.cooldownGroup;
@@ -113,51 +116,19 @@ function buildStackEvents(mitEvents: MitEvent[]): StackEvent[] {
       const groupCooldownMs = cooldownGroupMeta.cooldownSec * MS_PER_SEC;
       const groupResourceBase = toGroupResourceId(skillGroupId);
       const groupResourceKey = ownerKey ? `${groupResourceBase}:${ownerKey}` : groupResourceBase;
-      pushStackEvents(stackEvents, {
+      stackEvents.push({
         resourceKey: groupResourceKey,
-        ownerKey,
+        ownerKey: ownerKey,
         skillId: baseSkillId,
         isGroup: true,
-        tStartMs: event.tStartMs,
+        type: 'consume',
         cooldownMs: groupCooldownMs,
+        tMs: event.tStartMs,
       });
     }
   }
 
   return stackEvents;
-}
-
-function pushStackEvents(
-  stackEvents: StackEvent[],
-  payload: {
-    resourceKey: string;
-    ownerKey?: string;
-    skillId: string;
-    isGroup: boolean;
-    tStartMs: number;
-    cooldownMs: number;
-  },
-): void {
-  stackEvents.push(
-    {
-      resourceKey: payload.resourceKey,
-      ownerKey: payload.ownerKey,
-      skillId: payload.skillId,
-      isGroup: payload.isGroup,
-      type: 'consume',
-      cooldownMs: payload.cooldownMs,
-      tMs: payload.tStartMs,
-    },
-    {
-      resourceKey: payload.resourceKey,
-      ownerKey: payload.ownerKey,
-      skillId: payload.skillId,
-      isGroup: payload.isGroup,
-      type: 'recover',
-      cooldownMs: payload.cooldownMs,
-      tMs: payload.tStartMs + payload.cooldownMs,
-    },
-  );
 }
 
 interface CooldownEventBoundary {
@@ -168,18 +139,39 @@ interface CooldownEventBoundary {
   boundaryType: 'unusedStart' | 'unusedEnd' | 'cooldownStart' | 'cooldownEnd';
 }
 
-function buildBoundaries(stackEvents: StackEvent[]): Map<string, CooldownEventBoundary[]> | void {
+function buildBoundaries(
+  stackEvents: BinaryHeap<StackEvent>,
+): Map<string, CooldownEventBoundary[]> | void {
   const stacksBuffer = new Map<string, number>();
   const boundaries = new Map<string, CooldownEventBoundary[]>();
   const getSkillKey = (skillId: string, ownerKey?: string) =>
     ownerKey ? `${skillId}:${ownerKey}` : skillId;
 
-  for (const stackEvent of stackEvents) {
+  for (let stackEvent = stackEvents.pop(); stackEvent; stackEvent = stackEvents.pop()) {
     const initialStack = getInitialStack(stackEvent);
     let stack = stacksBuffer.get(stackEvent.resourceKey) ?? initialStack;
 
-    const stackDelta = stackEvent.type === 'consume' ? -1 : 1;
-    stack += stackDelta;
+    if (stackEvent.type === 'consume') {
+      // 消耗事件：若是从满层向下消耗，则需要生成一个恢复事件
+      if (stack === initialStack) {
+        stackEvents.push({
+          ...stackEvent,
+          type: 'recover',
+          tMs: stackEvent.tMs + stackEvent.cooldownMs,
+        });
+      }
+      stack -= 1;
+    } else {
+      stack += 1;
+      // 恢复事件：若是还没回满，则生成一个恢复事件
+      if (stack !== initialStack) {
+        stackEvents.push({
+          ...stackEvent,
+          type: 'recover',
+          tMs: stackEvent.tMs + stackEvent.cooldownMs,
+        });
+      }
+    }
 
     if (stack < 0) {
       // 容错：异常数据导致负数时重置为 0，保证后续边界可继续生成。
@@ -214,7 +206,7 @@ function buildBoundaries(stackEvents: StackEvent[]): Map<string, CooldownEventBo
         ];
       }
 
-      if (stack === 1 && stackDelta === 1) {
+      if (stack === 1 && stackEvent.type === 'recover') {
         return [
           {
             skillId,
@@ -345,13 +337,14 @@ function buildCooldownEventsSingle(
         cooldownOpenCount--;
         if (cooldownOpenCount === 0) {
           closeLastCooldown(boundary.tMs);
-        }
 
-        if (unusableOpenCount !== 0) {
-          startNewCooldown('unusable', boundary.tMs);
+          if (unusableOpenCount !== 0) {
+            startNewCooldown('unusable', boundary.tMs);
+          }
         }
         break;
     }
+    boundary.skillId = boundary.skillId ?? skillId;
   }
 
   return cooldowns;
