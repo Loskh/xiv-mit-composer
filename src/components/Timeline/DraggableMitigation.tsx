@@ -97,8 +97,9 @@ export function DraggableMitigation({
 
   const editForm = (
     <div
-      className={`${editPosition ? 'fixed z-50' : 'absolute left-0 top-full z-30 mt-2'
-        } min-w-40 rounded-lg border border-app bg-surface-3 p-3 shadow-2xl backdrop-blur-xl flex flex-col gap-2 text-app`}
+      className={`${
+        editPosition ? 'fixed z-50' : 'absolute left-0 top-full z-30 mt-2'
+      } min-w-40 rounded-lg border border-app bg-surface-3 p-3 shadow-2xl backdrop-blur-xl flex flex-col gap-2 text-app`}
       style={editPosition ? { left: editPosition.x, top: editPosition.y } : undefined}
       onPointerDown={(e) => e.stopPropagation()}
     >
@@ -111,10 +112,11 @@ export function DraggableMitigation({
         <div className="relative">
           <input
             autoFocus
-            className={`w-16 rounded-md border bg-surface px-2 py-1 text-[11px] font-mono text-app focus:outline-none focus:ring-2 ${isEditInvalid
+            className={`w-16 rounded-md border bg-surface px-2 py-1 text-[11px] font-mono text-app focus:outline-none focus:ring-2 ${
+              isEditInvalid
                 ? 'border-red-500 focus:ring-red-500/40'
                 : 'border-app focus:ring-(--color-focus)'
-              }`}
+            }`}
             ref={editInputRef}
             defaultValue={(mit.tStartMs / MS_PER_SEC).toFixed(TIME_DECIMAL_PLACES)}
             aria-label="开始时间（秒）"
@@ -160,8 +162,9 @@ export function DraggableMitigation({
     <div
       ref={setNodeRef}
       style={style}
-      className={`group rounded-md transition-shadow ${isSelected ? 'ring-2 ring-[#2f81f7] z-30' : ''
-        }`}
+      className={`group rounded-md transition-shadow ${
+        isSelected ? 'ring-2 ring-[#2f81f7] z-30' : ''
+      }`}
     >
       <div
         {...attributes}
@@ -176,8 +179,9 @@ export function DraggableMitigation({
         }}
       >
         <MitigationBarContent
-          headerClassName={`relative z-10 shadow-[0_6px_12px_var(--color-skill-shadow)] ${skill?.color || 'bg-slate-600'
-            }`}
+          headerClassName={`relative z-10 shadow-[0_6px_12px_var(--color-skill-shadow)] ${
+            skill?.color || 'bg-slate-600'
+          }`}
           iconSrc={getSkillIconLocalSrc(skill?.actionId)}
           iconAlt={skill?.name ?? 'skill icon'}
           iconFallback={iconFallback}
