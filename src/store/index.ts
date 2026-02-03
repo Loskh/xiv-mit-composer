@@ -326,7 +326,7 @@ export const useStore = create<AppState>()(
 
         if (!apiKey || !reportCode) {
           if (requestId !== fightRequestSeq) return;
-          const msg = !apiKey ? '未输入 API Key' : 'FFLogs URL 不合法';
+          const msg = !apiKey ? '未输入 FFLogs API Key,请点击右上角设置图标进行设置' : 'FFLogs URL 不合法';
           set({ error: msg, isLoading: false });
           get().pushBanner(msg, { tone: 'error' });
           return;

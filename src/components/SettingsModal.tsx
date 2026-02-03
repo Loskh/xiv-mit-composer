@@ -42,7 +42,7 @@ export function SettingsModal({
                 <div className="p-6 flex flex-col gap-6">
                     <div className="flex flex-col gap-2">
                         <label className="text-sm font-medium text-app" htmlFor="api-key-input">
-                            FFLogs V2 Client Key
+                            FFLogs V1 Client Key
                         </label>
                         <div className="relative">
                             <input
@@ -94,9 +94,14 @@ export function SettingsModal({
                                 )}
                             </button>
                         </div>
-                        <p className="text-xs text-muted">
-                            需要 FFLogs V2 API Client Credential 的 Client ID (不是 Client Secret)
-                        </p>
+                        <a
+                            href="https://cn.fflogs.com/profile"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-muted hover:text-app transition-colors hover:underline"
+                        >
+                            获取 FFLogs V1 Client Key
+                        </a>
                     </div>
 
 
