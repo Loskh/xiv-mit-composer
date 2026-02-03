@@ -1,32 +1,27 @@
-import { useState } from 'react';
 
 interface Props {
-  apiKey: string;
   fflogsUrl: string;
   isLoading: boolean;
   canExport: boolean;
   theme: 'light' | 'dark';
-  onApiKeyChange: (value: string) => void;
   onFflogsUrlChange: (value: string) => void;
   onLoadFight: () => void;
   onExportTimeline: () => void;
   onToggleTheme: () => void;
+  onOpenSettings: () => void;
 }
 
 export function AppHeader({
-  apiKey,
   fflogsUrl,
   isLoading,
   canExport,
   theme,
-  onApiKeyChange,
   onFflogsUrlChange,
   onLoadFight,
   onExportTimeline,
   onToggleTheme,
+  onOpenSettings,
 }: Props) {
-  const [showApiKey, setShowApiKey] = useState(false);
-
   return (
     <div className="p-4 bg-surface-2 border-b border-app flex flex-wrap gap-4 items-center z-20 relative shadow-md">
       <div className="mr-4 font-bold text-xl bg-clip-text text-transparent bg-linear-to-r from-[#0969da] via-[#1f6feb] to-[#2f81f7]">
@@ -34,57 +29,6 @@ export function AppHeader({
       </div>
 
       <div className="flex gap-2 items-center bg-surface-1 p-1.5 rounded-lg border border-app shadow-inner">
-        <div className="relative flex items-center">
-          <input
-            type={showApiKey ? 'text' : 'password'}
-            value={apiKey}
-            onChange={(e) => onApiKeyChange(e.target.value)}
-            aria-label="FFLogs API Key"
-            className="bg-transparent border-none focus:ring-0 text-sm w-64 pl-2 pr-8 text-app placeholder:text-muted outline-none"
-            placeholder="API Key"
-          />
-          <button
-            type="button"
-            onClick={() => setShowApiKey(!showApiKey)}
-            className="absolute right-2 text-muted hover:text-app transition-colors"
-            aria-label={showApiKey ? 'Hide API Key' : 'Show API Key'}
-          >
-            {showApiKey ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M9.88 9.88a3 3 0 1 0 4.24 4.24" />
-                <path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68" />
-                <path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7c.44 0 .87-.03 1.28-.09" />
-                <line x1="2" x2="22" y1="2" y2="22" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-                <circle cx="12" cy="12" r="3" />
-              </svg>
-            )}
-          </button>
-        </div>
-        <div className="w-px h-4 bg-(--color-border)"></div>
         <input
           type="text"
           value={fflogsUrl}
@@ -114,6 +58,28 @@ export function AppHeader({
           className="bg-primary-action hover:bg-[#2ea043] disabled:opacity-50 px-4 py-2 rounded-lg text-xs font-semibold transition-colors border border-app text-white shadow-sm"
         >
           导出 Souma 时间轴
+        </button>
+        <button
+          type="button"
+          onClick={onOpenSettings}
+          className="bg-surface-1 hover:bg-surface-2 size-9 rounded-full transition-colors border border-app text-muted hover:text-app shadow-sm flex items-center justify-center"
+          aria-label="设置"
+          title="设置"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.39a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
         </button>
         <button
           type="button"

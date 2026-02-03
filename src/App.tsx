@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useEffect, useMemo, useRef, useState } from 'react';
 import { DndContext, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import { useShallow } from 'zustand/shallow';
@@ -14,6 +14,7 @@ import { ExportModal } from './components/ExportModal';
 import { FightInfoBar } from './components/FightInfoBar';
 import { LoadFightModal } from './components/LoadFightModal';
 import { LoadingOverlay } from './components/LoadingOverlay';
+import { SettingsModal } from './components/SettingsModal';
 import { SkillSidebar } from './components/SkillSidebar';
 import { Timeline } from './components/Timeline/Timeline';
 import { TopBannerStack } from './components/TopBanner';
@@ -55,6 +56,7 @@ export default function App() {
 
   const [zoom, setZoom] = useState(DEFAULT_ZOOM);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [exportContent, setExportContent] = useState('');
   const [enableTTS, setEnableTTS] = useState(false);
   const [activeItem, setActiveItem] = useState<DragItemData | null>(null);
@@ -513,16 +515,15 @@ export default function App() {
     >
       <div className="h-screen overflow-hidden bg-app text-app flex flex-col font-sans">
         <AppHeader
-          apiKey={apiKey}
           fflogsUrl={fflogsUrl}
           isLoading={isLoading}
           canExport={!!fight && castEvents.length > 0}
           theme={theme}
-          onApiKeyChange={setApiKey}
           onFflogsUrlChange={setFflogsUrl}
           onLoadFight={handleOpenLoadModal}
           onExportTimeline={handleExportTimeline}
           onToggleTheme={() => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'))}
+          onOpenSettings={() => setIsSettingsOpen(true)}
         />
 
         {fight && (
@@ -583,6 +584,13 @@ export default function App() {
         onModeChange={setLoadMode}
         onConfirm={handleConfirmLoadFight}
         onClose={() => setIsLoadModalOpen(false)}
+      />
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        apiKey={apiKey}
+        onApiKeyChange={setApiKey}
       />
 
       <TopBannerStack />
